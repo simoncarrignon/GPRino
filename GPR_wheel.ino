@@ -23,6 +23,18 @@
 #include <TFT_HX8357.h>
 #include "Free_Fonts.h"
 #include <SD.h>
+#include "OneWire.h"
+#include "DallasTemperature.h"
+
+// Define to which pin of the Arduino the 1-Wire bus is connected:
+#define ONE_WIRE_BUS 12
+
+// Create a new instance of the oneWire class to communicate with any OneWire device:
+OneWire oneWire(ONE_WIRE_BUS);
+
+// Pass the oneWire reference to DallasTemperature library:
+DallasTemperature sensors(&oneWire);
+
 
 TFT_HX8357 tft = TFT_HX8357();
 arduinoFFT FFT = arduinoFFT();
@@ -63,6 +75,10 @@ boolean cont, card;
 //------------------------------------------------------------------------
 void setup()
 {
+  Serial.begin(115200);
+  // Start up the library:
+  sensors.begin();
+  pinMode(LED_BUILTIN, OUTPUT);
   Wire.begin();
   Wire.setClock(400000);
   tft.begin();
@@ -79,84 +95,85 @@ void setup()
   pinMode(button_down, INPUT_PULLUP);
   pinMode(step_sensor, INPUT_PULLUP);
 
-  tft.drawString("<c> Mirel Paun 2020", xpos, ypos, GFXFF);
+  tft.drawString("Hola, Como vamos amigo?", xpos, ypos, GFXFF);
   delay(1000);
+  check_displ_temp();
   tft.fillScreen(BLACK);
-
-  if (!digitalRead(buton_OK))
-  {
-    card = false; //do not store on SD card
-    while (!digitalRead(buton_OK)) ;
+  for( int i=0 ; i<10 ; i++){
+    digitalWrite(LED_BUILTIN, HIGH);  // turn the LED on (HIGH is the voltage level)
+    delay(100);                      // wait for a second
+    digitalWrite(LED_BUILTIN, LOW);   // turn the LED off by making the voltage LOW
+    delay(500);   
   }
-  else
-  {
-
-    if (SD.begin(SDC_CS))
-    {
-      card = true;
-      Serial.begin(115200);
-      delay(1000);
-      tft.drawString("Waiting for PC to connect ...", xpos, ypos, GFXFF);
-      tft.drawString("Press OK to continue ...", xpos, ypos + tft.fontHeight(GFXFF), GFXFF);
-      while ((Serial.available() <= 0) && (digitalRead(buton_OK))) //wait for PC or OK button
-      {
-        delay(100);
-      }
-      if (Serial.available() > 0)
-      {
-        if (Serial.read() == 'A')
-        {
-          file = SD.open("Date.dat");
-          if (file)
-            //Send stored data
-          {
-            tft.fillScreen(BLACK);
-            tft.drawString("Connected. Sending file!", xpos, ypos, GFXFF);
-            while (file.available())
-            {
-              Serial.write(file.read());
-            }
-            file.close();
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-            tft.fillScreen(BLACK);
-            tft.drawString("File sent!", xpos, ypos, GFXFF);
-            tft.drawString("Press OK to delete file ...", xpos, ypos + tft.fontHeight(GFXFF), GFXFF);
-            while (digitalRead(buton_OK)) //wait for OK button press
-            {
-              delay(100);
-            }
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////            
-            tft.fillScreen(BLACK);
-            tft.drawString("Deleting file ...", xpos, ypos, GFXFF);
-            if (SD.remove("Date.dat")) {
-              tft.drawString("Deleted!", xpos, ypos + tft.fontHeight(GFXFF), GFXFF);
-            }
-            else {
-              tft.drawString("Error deleting file!", xpos, ypos + tft.fontHeight(GFXFF), GFXFF);
-            }
-            while (1) {
-              ; // Stop
-            }
-          }
-          else
-          {
-            tft.fillScreen(BLACK);
-            tft.drawString("Error! File missing!", xpos, ypos, GFXFF);
-            while (1) {
-              ; // Stop
-            }
-          }
-        }
-      }
-    }
-    else
-    {
-      card = false; //no SD card
-      tft.drawString("SD Card missing!!!", xpos, ypos, GFXFF);
-      delay(2000);
-    }
-    tft.fillScreen(BLACK);
-  }
+  digitalWrite(LED_BUILTIN, HIGH);
+  
+  // if (!digitalRead(button_OK))
+  // {
+  //   card = false; //do nor store on SD Card
+  //   while (!digitalRead(button_OK)) ;
+  // }
+  // else
+  // {
+  // tft.drawString("Checking for SD card", xpos, ypos, GFXFF);
+  // delay(1000);
+  // tft.fillScreen(BLACK);
+  //   if (SD.begin(SDC_CS))
+  //   {
+  //     card = true;
+  //     Serial.begin(115200);
+  //     delay(1000);
+  //     tft.drawString("Waiting for PC to connect ...", xpos, ypos, GFXFF);
+  //     tft.drawString("Press OK to continue ...", xpos, ypos + tft.fontHeight(GFXFF), GFXFF);
+  //     while ((Serial.available() <= 0) && (digitalRead(button_OK))) //wait for PC or OK button
+  //     {
+  //       delay(100);
+  //     }
+  //     if (Serial.available() > 0)
+  //     {
+  //       if (Serial.read() == 'A')
+  //       {
+  //         file = SD.open("Date.dat");
+  //         if (file)
+  //           //Send stored data
+  //         {
+  //           tft.fillScreen(BLACK);
+  //           tft.drawString("Connected. Sending file!", xpos, ypos, GFXFF);
+  //           while (file.available())
+  //           {
+  //             Serial.write(file.read());
+  //           }
+  //           file.close();
+  //           tft.fillScreen(BLACK);
+  //           tft.drawString("Deleting file ...", xpos, ypos, GFXFF);
+  //           if (SD.remove("Date.dat")) {
+  //             tft.drawString("Deleted!", xpos, ypos + tft.fontHeight(GFXFF), GFXFF);
+  //           }
+  //           else {
+  //             tft.drawString("Error deleting file!", xpos, ypos + tft.fontHeight(GFXFF), GFXFF);
+  //           }
+  //           while (1) {
+  //             ; // Stop
+  //           }
+  //         }
+  //         else
+  //         {
+  //           tft.fillScreen(BLACK);
+  //           tft.drawString("Error! File missing!", xpos, ypos, GFXFF);
+  //           while (1) {
+  //             ; // Stop
+  //           }
+  //         }
+  //       }
+  //     }
+  //   }
+  //   else
+  //   {
+  //     card = false; //no SD card
+  //     tft.drawString("SD Card missing!!!", xpos, ypos, GFXFF);
+  //     delay(2000);
+  //   }
+  //   tft.fillScreen(BLACK);
+  // }
 
   //DAC at 0
   Wire.beginTransmission(Adresa_MCP4725);
@@ -221,16 +238,16 @@ void setup()
   rezolutie = c / (2.0 * banda); //depth resolution [m]
   min_adanc = -4 * rezolutie;  	 //offset cables + antennas (aprox. 4 * resolution)
 
-  if (card)
-  {
-    //Verify file existance, if missing, create it and write speed index
-    if (!SD.exists("Date.dat")) {
-      file = SD.open("Date.dat", FILE_WRITE);
-      file.write(highByte(i));
-      file.write(lowByte(i));
-      file.close();
-    }
-  }
+  // if (card)
+  // {
+  //   //Verify file existance, if missing, create it and write speed index
+  //   if (!SD.exists("Date.dat")) {
+  //     file = SD.open("Date.dat", FILE_WRITE);
+  //     file.write(highByte(i));
+  //     file.write(lowByte(i));
+  //     file.close();
+  //   }
+  // }
 
   //Depth menu--------------------------------------------------------------
   i = 0;
@@ -377,6 +394,7 @@ void setup()
   Graph(tft, orig_x, orig_y, latime_grafic, inaltime_grafic, 0, max_dist, pas_dist, min_adanc, max_adanc, pas_adanc, "GPR", "Distance [m]", "Depth [m]");
   afis_card();
   check_displ_temp();
+  check_displ_batlevel();
 }
 
 //------------------------------------------------------------------------
@@ -385,10 +403,28 @@ void loop()
   while (digitalRead(step_sensor) == 0)
   {
     check_displ_batlevel();
+    check_displ_temp();
+    sensors.requestTemperatures();
+    // Fetch the temperature in degrees Celsius for device index:
+    float tempC = sensors.getTempCByIndex(0); // the index 0 refers to the first device
+                                              // Print the temperature in Celsius in the Serial Monitor:
+    Serial.print("Temperature: ");
+    Serial.print(tempC);
+    Serial.print(" \xC2\xB0"); // shows degree symbol
+    Serial.println("C");
   }
   while (digitalRead(step_sensor) == 1)
   {
     check_displ_batlevel();
+    check_displ_temp();
+    sensors.requestTemperatures();
+    // Fetch the temperature in degrees Celsius for device index:
+    float tempC = sensors.getTempCByIndex(0); // the index 0 refers to the first device
+                                              // Print the temperature in Celsius in the Serial Monitor:
+    Serial.print("Temperature: ");
+    Serial.print(tempC);
+    Serial.print(" \xC2\xB0"); // shows degree symbol
+    Serial.println("C");
   }
   // If screen is full, delete and start again
   if (((pas % nr_cel_rez_oriz) == 0) && (pas != 0))
@@ -432,8 +468,8 @@ void loop()
   // Prepare data for FFT
   for (i = 0; i < nr_esant; i++)
   {
-	//real[i] = (double)(esantioane[i]) - (double)(corectie[i]); // Load samples and correct antenna coupling
-    real[i] = (double)(esantioane[i]) - 512.0; // Load samples and eliminate d.c.
+    //real[i] = (double)(esantioane[i]) - (double)(corectie[i]); // Load samples and correct antenna coupling
+    real[i] = (double)(esantioane[i]) - 512.0;    // Load samples and remove d.c.
     imag[i] = 0.0;                                // Delete imaginary part
   }
   // Compute FFT
@@ -577,3 +613,18 @@ void check_displ_batlevel(void)
     tft.fillRect(450, 7, 3, 8, WHITE);
   }
 }
+
+void check_displ_temp(void)
+{
+    // Send the command for all devices on the bus to perform a temperature conversion:
+    sensors.requestTemperatures();
+    // Fetch the temperature in degrees Celsius for device index:
+    float tempC = sensors.getTempCByIndex(0); // the index 0 refers to the first device
+    String tmp;
+    tmp=String(tempC,1)+"C";
+    char text[8];
+    tmp.toCharArray(text, 8);
+    tft.setTextColor(YELLOW, BLACK);
+    tft.drawString(text, 115, 10, 2);
+}
+
