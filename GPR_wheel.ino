@@ -394,8 +394,16 @@ void setup()
   tft.fillScreen(BLACK);
   Graph(tft, orig_x, orig_y, graph_width, graph_height, 0, max_dist, dist_step, min_depth, max_depth, depth_step, "GPR", "Distance [m]", "Depth [m]");
   disp_card_status();
-  check_displ_batlevel();
   check_displ_temp();
+  check_displ_batlevel();
+    sensors.requestTemperatures();
+    // Fetch the temperature in degrees Celsius for device index:
+    float tempC = sensors.getTempCByIndex(0); // the index 0 refers to the first device
+                                              // Print the temperature in Celsius in the Serial Monitor:
+    Serial.print("Temperature: ");
+    Serial.print(tempC);
+    Serial.print(" \xC2\xB0"); // shows degree symbol
+    Serial.println("C");
 }
 
 //------------------------------------------------------------------------
@@ -406,27 +414,11 @@ void loop()
   {
     check_displ_batlevel();
     check_displ_temp();
-    sensors.requestTemperatures();
-    // Fetch the temperature in degrees Celsius for device index:
-    float tempC = sensors.getTempCByIndex(0); // the index 0 refers to the first device
-                                              // Print the temperature in Celsius in the Serial Monitor:
-    Serial.print("Temperature: ");
-    Serial.print(tempC);
-    Serial.print(" \xC2\xB0"); // shows degree symbol
-    Serial.println("C");
   }
   while (digitalRead(wheel_trigger) == 1)
   {
     check_displ_batlevel();
     check_displ_temp();
-    sensors.requestTemperatures();
-    // Fetch the temperature in degrees Celsius for device index:
-    float tempC = sensors.getTempCByIndex(0); // the index 0 refers to the first device
-                                              // Print the temperature in Celsius in the Serial Monitor:
-    Serial.print("Temperature: ");
-    Serial.print(tempC);
-    Serial.print(" \xC2\xB0"); // shows degree symbol
-    Serial.println("C");
   }
   // If screen is full, delete and start again
   if (((scan_index % no_res_cells_horiz) == 0) && (scan_index != 0))
