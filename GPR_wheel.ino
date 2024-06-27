@@ -77,7 +77,7 @@ void setup()
   pinMode(button_up, INPUT_PULLUP);
   pinMode(button_OK, INPUT_PULLUP);
   pinMode(button_down, INPUT_PULLUP);
-  pinMode(wheel_trigger, INPUT);
+  pinMode(wheel_trigger, INPUT_PULLUP);
 
   tft.drawString("<c> Mirel Paun 2020", xpos, ypos, GFXFF);
   delay(1000);
