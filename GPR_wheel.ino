@@ -98,14 +98,14 @@ void setup()
 
   tft.drawString("Hola, Como vamos amigo?", xpos, ypos, GFXFF);
   delay(1000);
-  check_displ_temp();
-  tft.fillScreen(BLACK);
-  for( int i=0 ; i<10 ; i++){
-    digitalWrite(LED_BUILTIN, HIGH);  // turn the LED on (HIGH is the voltage level)
-    delay(100);                      // wait for a second
-    digitalWrite(LED_BUILTIN, LOW);   // turn the LED off by making the voltage LOW
-    delay(500);   
-  }
+  //check_displ_temp();
+  //tft.fillScreen(BLACK);
+  //for( int i=0 ; i<10 ; i++){
+    //digitalWrite(LED_BUILTIN, HIGH);  // turn the LED on (HIGH is the voltage level)
+    //delay(100);                      // wait for a second
+  //  digitalWrite(LED_BUILTIN, LOW);   // turn the LED off by making the voltage LOW
+  //  delay(500);   
+ // }
   digitalWrite(LED_BUILTIN, HIGH);
   
   // if (!digitalRead(button_OK))
@@ -413,12 +413,12 @@ void loop()
   while (digitalRead(wheel_trigger) == 0)
   {
     check_displ_batlevel();
-    check_displ_temp();
+  //  check_displ_temp();
   }
   while (digitalRead(wheel_trigger) == 1)
   {
     check_displ_batlevel();
-    check_displ_temp();
+  //  check_displ_temp();
   }
   // If screen is full, delete and start again
   if (((scan_index % no_res_cells_horiz) == 0) && (scan_index != 0))
@@ -428,6 +428,7 @@ void loop()
     Graph(tft, orig_x, orig_y, graph_width, graph_height, nr_ecran * max_dist, (nr_ecran + 1) * max_dist, dist_step, min_depth, max_depth, depth_step, "GPR", "Distance [m]", "Depth [m]");
     disp_card_status();
     check_displ_batlevel();
+    check_displ_temp();
   }
   // Generate modulation signal and sample radar echo
   for (i = 0; i <= 4080; i = i + 16) // DAC goes from 0 - 4.98V
