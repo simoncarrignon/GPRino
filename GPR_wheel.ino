@@ -40,6 +40,9 @@ TFT_HX8357 tft = TFT_HX8357();
 arduinoFFT FFT = arduinoFFT();
 
 File file;
+bool connected=false;
+static int countpc=0;
+char command;
 
 const word battery_level[3] = {384, 392, 401};   //battery voltage threshold levels: low - med1 - med2 (V_bat/5V*1023*0.4)
 
@@ -72,6 +75,8 @@ word no_res_cells_horiz, no_res_cells_vert, res_cell_height, res_cell_width, no_
 word i, scaled_amplitude, color, samples[no_of_samples];
 double real[no_of_samples], imag[no_of_samples], depth_corrected_amplitude;
 boolean cont, card;
+
+
 
 //------------------------------------------------------------------------
 void setup()
@@ -393,17 +398,9 @@ void setup()
   // Draw grid
   tft.fillScreen(BLACK);
   Graph(tft, orig_x, orig_y, graph_width, graph_height, 0, max_dist, dist_step, min_depth, max_depth, depth_step, "GPR", "Distance [m]", "Depth [m]");
-  disp_card_status();
   check_displ_temp();
-  check_displ_batlevel();
-    sensors.requestTemperatures();
-    // Fetch the temperature in degrees Celsius for device index:
-    float tempC = sensors.getTempCByIndex(0); // the index 0 refers to the first device
-                                              // Print the temperature in Celsius in the Serial Monitor:
-    Serial.print("Temperature: ");
-    Serial.print(tempC);
-    Serial.print(" \xC2\xB0"); // shows degree symbol
-    Serial.println("C");
+  check_pc_connect();
+  disp_pc_status();
 }
 
 //------------------------------------------------------------------------
@@ -412,12 +409,12 @@ void loop()
   // Wait for step wheel signal
   while (digitalRead(wheel_trigger) == 0)
   {
-    check_displ_batlevel();
+    // check_displ_batlevel();
   //  check_displ_temp();
   }
   while (digitalRead(wheel_trigger) == 1)
   {
-    check_displ_batlevel();
+    // check_displ_batlevel();
   //  check_displ_temp();
   }
   // If screen is full, delete and start again
@@ -426,9 +423,11 @@ void loop()
     word nr_ecran = scan_index / no_res_cells_horiz;
     tft.fillScreen(BLACK);
     Graph(tft, orig_x, orig_y, graph_width, graph_height, nr_ecran * max_dist, (nr_ecran + 1) * max_dist, dist_step, min_depth, max_depth, depth_step, "GPR", "Distance [m]", "Depth [m]");
-    disp_card_status();
-    check_displ_batlevel();
+    //disp_pcard_status();
+    //check_displ_batlevel();
     check_displ_temp();
+    check_pc_connect();
+    disp_pc_status();
   }
   // Generate modulation signal and sample radar echo
   for (i = 0; i <= 4080; i = i + 16) // DAC goes from 0 - 4.98V
@@ -458,6 +457,22 @@ void loop()
       //file.flush();
     }
     file.close();
+  }
+
+  //Store on PC via TTY
+  if (connected)
+  {
+      for (i = 0; i < no_of_samples; i++)
+      {
+          Serial.write(highByte(samples[i]));
+          Serial.write(lowByte(samples[i]));
+      }
+      countpc++;
+      // Every 10th time, send the 'F' character
+      if (countpc >= 10) {
+          Serial.write('F'); // Send 'F' to signal file switch
+          countpc = 0; // Reset the counter
+      }
   }
 
   // Prepare data for FFT
@@ -577,6 +592,20 @@ void disp_card_status()
   }
 }
 
+void disp_pc_status()
+{
+  if (connected)
+  {
+    tft.setTextColor(GREEN, BLACK);
+    tft.drawString("PC OK", 370, 2, 2);
+  }
+  else
+  {
+    tft.setTextColor(RED, BLACK);
+    tft.drawString("NO PC", 370, 2, 2);
+  }
+}
+
 void check_displ_batlevel(void)
 {
   //Measure and display battery state
@@ -608,6 +637,21 @@ void check_displ_batlevel(void)
     tft.fillRect(450, 7, 3, 8, WHITE);
   }
 }
+
+void check_pc_connect(void) {
+    if(!connected){
+        if (Serial.available() > 0) {
+            command = Serial.read();
+            if (command == 'S') {
+                connected = true;
+                // Send 'G' as an acknowledgment for receiving 'S'
+                Serial.write('G');
+            }
+        }
+    }
+}
+
+
 
 void check_displ_temp(void)
 {
