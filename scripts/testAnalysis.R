@@ -49,12 +49,14 @@ image(filterMatrix(log(t(getMagnitude("./"))[,129:1])))
 
 
 plotOneSector <- function(mainfolder,filter=T){
-
+    leg="raw"
     allsides=list.dirs(mainfolder)[-1]
-    allcomput=lapply(allsides,function(side){
-                         if(filter) tryCatch(filterMatrix(getMagnitude(side)),error=function(e)NULL)
-                         else tryCatch(getMagnitude(side),error=function(e)NULL)
-})
+    allcomput=lapply(allsides,function(side){ tryCatch(getMagnitude(side),error=function(e)NULL) })
+    if(filter){
+        allcomput=lapply(allcomput,function(side){ tryCatch(filterMatrix(side),error=function(e)NULL) })
+        leg='filtered'
+    }
+
     names(allcomput)=basename(allsides)
     allcomput=allcomput[lengths(allcomput)>0]
     zlim=log(range(allcomput))
@@ -65,8 +67,10 @@ plotOneSector <- function(mainfolder,filter=T){
     else
         par(mfrow=c(rnd,rnd))
     na=lapply(names(allcomput),function(nz)tryCatch(image(log(t(allcomput[[nz]])[,129:1]),zlim=zlim,main=nz),error=function(e)plot.new()))
+    mtext(leg,1,-1.5,outer=T,cex=3)
     return(allcomput)
 }
+
 plot(t(lapply(allproper,apply,2,mean)[[1]],type="l"))
 apply(allproper[[2]],1,function(u)lines(u,type="l",col="red"))
 lines(lapply(allproper,apply,2,mean)[[2]],type="l",col="red")
