@@ -466,11 +466,13 @@ void loop()
       {
           Serial.write(highByte(samples[i]));
           Serial.write(lowByte(samples[i]));
+          delay(1);
       }
       countpc++;
       // Every 10th time, send the 'F' character
       if (countpc >= 10) {
           Serial.write('F'); // Send 'F' to signal file switch
+          delay(100);
           countpc = 0; // Reset the counter
       }
   }
@@ -646,6 +648,7 @@ void check_pc_connect(void) {
                 connected = true;
                 // Send 'G' as an acknowledgment for receiving 'S'
                 Serial.write('G');
+                delay(10);
             }
         }
     }
