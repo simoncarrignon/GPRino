@@ -187,6 +187,7 @@ void setup()
   Wire.write( 0 );        //LSB
   Wire.endTransmission();
   delay(10);
+  tft.fillScreen(BLACK);
 
   //Propagation velocities menu ------------------------------------------------------------
   while (!digitalRead(button_OK)) ;
@@ -470,17 +471,17 @@ void loop()
       }
       countpc++;
       // Every 10th time, send the 'F' character
-      if (countpc >= 10) {
-          Serial.write('F'); // Send 'F' to signal file switch
-          delay(100);
-          countpc = 0; // Reset the counter
-      }
+      //if (countpc >= 10) {
+      //    Serial.write('F'); // Send 'F' to signal file switch
+      //    delay(100);
+      //    countpc = 0; // Reset the counter
+      //}
   }
 
   // Prepare data for FFT
   for (i = 0; i < no_of_samples; i++)
   {
-	//real[i] = (double)(samples[i]) - (double)(correction[i]); // Load samples and correct antenna coupling
+	//real[i] = (double)(samples[i]) - (double)(correction[i]); // Load samples and correct antenna couplingj
     real[i] = (double)(samples[i]) - 512.0; // Load samples and eliminate d.c.
     imag[i] = 0.0;                          // Delete imaginary part
   }
